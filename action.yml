@@ -1,44 +1,23 @@
-name: 'Git Commit and Push w/ Force Push'
-description: 'Commits any changed files and pushes (with force option) the result back to origin branch.'
+name: 'Create Azure ML Workspace'
+description: 'Create an Azure ML Workspace'
 author: 'dciborow'
 branding:
   icon: 'git-commit'
   color: 'green'
 inputs: 
-  github-token:
-    description: 'Github Token with commit access'
+  subscription_id:
+    description: 'Azure Subscription Id'
     required: true
-  push-branch:
-    description: 'Override branch to push to'
+  resource_group:
+    description: 'Azure Resource Group Name'
+    required: true
+  workspace_name:
+    description: 'Azure ML Workspace Name'
+    required: true
+  workspace_region:
+    description: 'Azure ML Workspace Region'
     required: false
-  commit-message:
-    description: 'Specify commit message'
-    required: false
-    default: 'autocommit'
-  force-add:
-    description: 'Force add files, useful for adding ignored files.'
-    required: false
-    default: 'false'
-  force-push:
-    description: 'Force push'
-    required: false
-    default: 'false'
-  rebase:
-    description: 'Pull and rebase before commiting. Useful when using commit inside matrix.'
-    required: false
-    default: 'false'
-  files:
-    description: 'Specific files to add.'
-    required: false
-    default: ''
-  email:
-    description: 'Committer email. Default is ${name}@users.noreply.github.com'
-    required: false
-    default: ''
-  name:
-    description: 'Committer name. Default is name of the person or app that initiated the workflow.'
-    required: false
-    default: ''
+    default: 'westus'
 runs:
   using: 'docker'
   image: 'Dockerfile'
