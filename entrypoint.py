@@ -3,58 +3,26 @@
 from plumbum import local
 import os
 
+from azure_utils.machine_learning.utils import get_or_create_workspace_from_project
+
 def debug(message: str):
     print(f'##[debug]{message}')
 
 
 def run():
-    netrc_path = os.path.join(local.env.get('HOME', ''), '.netrc')
-    github_actor = local.env.get('GITHUB_ACTOR')
-    github_token = local.env.get('INPUT_GITHUB-TOKEN')
-    commit_message = local.env.get('INPUT_COMMIT-MESSAGE')
-    force_add = local.env.get('INPUT_FORCE-ADD')
-    force_push = local.env.get('INPUT_FORCE-PUSH')
-    branch = local.env.get('INPUT_PUSH-BRANCH') or local.env.get('GITHUB_REF').split('/')[2]
-    rebase = local.env.get('INPUT_REBASE', 'false')
-    files = local.env.get('INPUT_FILES', '')
-    email = local.env.get('INPUT_EMAIL', f'{github_actor}@users.noreply.github.com')
-    name = local.env.get('INPUT_NAME', github_actor)
-    with open(netrc_path, 'w') as f:
-        f.write(
-            f'machine github.com\n'
-            f'login {github_actor}\n'
-            f'password {github_token}\n'
-            f'machine api.github.com\n'
-            f'login {github_actor}\n'
-            f'password {github_token}\n'
-        )
-    chmod = local['chmod']
-    git = local['git']
-    debug(chmod(['600', netrc_path]))
-    debug(git(['config', '--global', 'user.email', email]))
-    debug(git(['config', '--global', 'user.name', name]))
-    debug(f'username:{github_actor}, branch:{branch}, commit message:{commit_message}')
-    with open(netrc_path) as f:
-        debug(f.read())
-    add_args = ['add']
-    if force_add == 'true':
-        add_args.append('-f')
-    add_args.append('-A')
-    if files:
-        add_args.append(files)
-    if rebase == 'true':
-        debug(git(['pull', '--rebase', '--autostash', 'origin', branch]))
-    debug(git(['checkout', '-B', branch]))
-    debug(git(add_args))
-    debug(git(['commit', '-m', commit_message], retcode=None))
-    push_args = ['push']
-    if force_push == 'true':
-        push_args.append('--force')
-    push_args.append('--follow-tags')
-    push_args.append('--set-upstream')
-    push_args.append('origin')
-    push_args.append(branch)
-    debug(git(push_args))
+    projectyml = os.path.join(local.env.get('HOME', ''), 'project.yml')
+    subscription_id = local.env.get('subscription_id')
+    resource_group = local.env.get('resource_group')
+    workspace_name = local.env.get('workspace_name')
+    workspace_region = local.env.get('workspace_region')
+   
+    proj_config = ProjectConfiguration(projectyml)
+    proj_config.add_setting("subscription_id", "Your Azure Subscription", subscription_id)
+    proj_config.add_setting("resource_group", "Azure Resource Group Name", resource_group)
+    proj_config.add_setting("workspace_name", "Azure ML Workspace Name", workspace_name)
+    proj_config.add_setting("workspace_region", "Azure ML Workspace Region", workspace_region)
+
+    debug(get_or_create_workspace_from_project(proj_config))
 
 if __name__ == '__main__':
     run()
